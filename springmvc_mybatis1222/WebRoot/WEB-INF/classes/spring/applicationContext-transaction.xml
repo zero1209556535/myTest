@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+	
+	<!-- 配置事务管理器
+		对mybatis操作数据库事务控制，Spring使用JDBC的事务控制类
+		由于操作了数据库，才需要进行事务控制，因此需要配置数据源。
+	 -->	
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 配置数据源
+			dataSource在applicationContext-dao.xml中我们已经配置过了，这里直接引用就行了。
+		 -->
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- 通知 ，transaction-manager属性表示我们将通知告诉给事务管理器，对我们需要用到事务控制的方法进行事务控制-->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- 传播行为 -->
+			<!-- 需要进行事务控制的方法的声明 ，propagation属性表示是否需要进行事务控制，REQUIRED值表示必须，-->
+			<!-- 使用声明式事务控制配置而非注解的方式的目的是规范程序员编写Service接口中的方法 -->
+			<tx:method name="save*" propagation="REQUIRED"/>
+			<tx:method name="delete*" propagation="REQUIRED"/>
+			<tx:method name="update*" propagation="REQUIRED"/>
+			<tx:method name="insert*" propagation="REQUIRED"/>
+			<!-- 不需要进行事务控制的方法的声明 ，propagation属性值为SUPPORTS表示支持没有事务 ，read-only="true"表示只读，不对数据库进行修改操作-->
+			<tx:method name="select*" propagation="SUPPORTS" read-only="true"/>
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+			
+		</tx:attributes>
+	
+	</tx:advice>
+	
+	<!-- 谁来调用通知呢？ -->
+	<!-- AOP，面向切面编程 ，advice-ref属性引用我们配置的通知，执行Service某个方法的时候，将切面切住，然后通知我们配置的txAdvice，-->
+	<!-- pointcut表示切入点表达式，要切的是我们的Service，也就是Service实现类里的方法，属性里配置的值表示我们要切的具体的方法 -->
+	<aop:config>
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.itcast.ssm.service.impl.*.*(..))"/>
+	</aop:config>
+	
+</beans>	
+	
+	
+	
+	
+	

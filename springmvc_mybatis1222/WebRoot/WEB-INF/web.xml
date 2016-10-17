@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		 xmlns="http://java.sun.com/xml/ns/javaee" 
+		 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+		 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
+		 id="WebApp_ID" version="2.5">
+  <display-name>springmvc_mybatis1222</display-name>
+  
+  <!-- 初始化加载Spring容器 -->
+  <context-param>
+  	<param-name>contextConfigLocation</param-name>
+  	<param-value>/WEB-INF/classes/spring/applicationContext-*.xml</param-value>
+  </context-param>
+  <listener>
+  	<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  
+  
+  <!-- 配置springmvc前端控制器DispatcherServlet，URL地址后缀为.action格式 -->
+  <servlet>
+  	<servlet-name>springmvc</servlet-name>
+  	<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+  	<!-- 通过contextConfigLocation来配置springmvc需要加载的配置文件（处理器映射器、处理器适配器等等）
+  		  如果不配置contextConfigLocation的话，那么默认加载的是/WEB-INF/servlet名称-servlet.xml(也就是springmvc-servlet.xml)
+  	 -->
+  	<init-param>
+  		<param-name>contextConfigLocation</param-name>
+  		<param-value>classpath:spring/springmvc.xml</param-value>
+  	</init-param>
+  </servlet>
+  <!-- servlet-mapping也是前端控制器的配置 -->
+  <servlet-mapping>
+  	<!-- 这里的servlet-name就是上面前端控制器的名称 -->
+  	<servlet-name>springmvc</servlet-name>
+  	<!-- 
+  		第一种：*.action，访问以.action结尾的地址由DispatcherServlet进行解析。
+  		第二种：/，所有访问的地址都由DispatcherServlet进行解析，对于静态文件的解析需要配置成不让DispatcherServlet进行解析。
+  	 		    使用此种方法可以实现RESTful风格的url。
+  	 	第三种：/*，这种配置不正确，使用这种配置，最终要转发到一个jsp页面时，仍然会由DispatcherServlet解析jsp地址，不能根据jsp页面地址找到Handler，会报错。	  
+  	 -->
+  	<url-pattern>*.action</url-pattern>
+  </servlet-mapping>
+  
+  <!-- 配置springmvc前端控制器DispatcherServlet，RESTful格式 -->
+  <servlet>
+  	<servlet-name>springmvc_RESTful</servlet-name>
+  	<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+  	<!-- 通过contextConfigLocation来配置springmvc需要加载的配置文件（处理器映射器、处理器适配器等等）
+  		  如果不配置contextConfigLocation的话，那么默认加载的是/WEB-INF/servlet名称-servlet.xml(也就是springmvc-servlet.xml)
+  	 -->
+  	<init-param>
+  		<param-name>contextConfigLocation</param-name>
+  		<param-value>classpath:spring/springmvc.xml</param-value>
+  	</init-param>
+  </servlet>
+  <!-- servlet-mapping也是前端控制器的配置 -->
+  <servlet-mapping>
+  	<!-- 这里的servlet-name就是上面前端控制器的名称 -->
+  	<servlet-name>springmvc_RESTful</servlet-name>
+  	<!-- 
+  		第一种：*.action，访问以.action结尾的地址由DispatcherServlet进行解析。
+  		第二种：/，所有访问的地址都由DispatcherServlet进行解析，对于静态文件的解析需要配置成不让DispatcherServlet进行解析。
+  	 		    使用此种方法可以实现RESTful风格的url。
+  	 	第三种：/*，这种配置不正确，使用这种配置，最终要转发到一个jsp页面时，仍然会由DispatcherServlet解析jsp地址，不能根据jsp页面地址找到Handler，会报错。	  
+  	 -->
+  	<url-pattern>/</url-pattern>
+  </servlet-mapping>
+  
+  <!-- post乱码过滤器 -->
+  <filter>
+  	<filter-name>CharacterEncodingFilter</filter-name>
+  	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+  	<init-param>
+  		<param-name>encoding</param-name>
+  		<param-value>UTF-8</param-value>
+  	</init-param>
+  </filter>
+  <filter-mapping>
+  	<filter-name>CharacterEncodingFilter</filter-name>
+  	<url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE configuration   
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+	<!-- 标签配置先后顺序：
+	properties?,settings?,typeAliases?,
+	typeHandlers?,objectFactory?,objectWrapperFactory?,
+	plugins?,environments?,databaseIdProvider?,mappers? -->
+
+	<!-- 全局setting的配置，根据需要添加，包括二级缓存和延迟加载 -->
+	<!-- <settings>
+		<setting name="" value=""/>
+	</settings> -->
+
+	<!-- 配置别名 -->
+	<typeAliases>
+		<!-- 使用批量扫描的方式配置别名，若有多个包需要扫描，那就配置多个package标签即可，别名为类名首字母大小写均可 -->
+		<package name="cn.itcast.ssm.po"/>
+	</typeAliases>
+
+	<!-- 配置Mapper，由于使用mybatis和Spring的整合包进行Mapper批量扫描 ，因此这里我们就不需要再进行配置了-->
+	<!-- 但是必须要遵循mapper.java和mapper.xml的文件名称一致并且存放在相同目录下的原则 -->
+	<!-- <mappers></mappers> -->
+	
+</configuration>
+
+
+

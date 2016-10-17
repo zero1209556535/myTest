@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+	
+	<!-- 加载数据库配置文件db.properties，注意db.properties中的key的命名要有一定的特殊规则，不能命名太简单随意-->
+	<context:property-placeholder location="classpath:db.properties"/>
+	
+	<!-- 配置数据源 ，这里我们使用dbcp数据源，不使用c3p0数据源，这两者差不多，用谁都一样，可能c3p0更好一点--> 
+	<!-- destroy-method="close"的作用是当数据库连接不使用的时候,就把该连接重新放到数据池中,方便下次使用调用 -->  
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" 
+		destroy-method="close">
+		<!-- 数据库属性设置 -->
+		<property name="driverClassName" value="${jdbc.driver}"></property>
+		<property name="url" value="${jdbc.url}"></property>
+		<property name="username" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+		<property name="maxActive" value="30"></property>
+		<property name="maxIdle" value="5"></property>
+		<!-- maxActive是最大激活连接数，这里取值为30，表示同时最多有30个数据库连接。
+		maxIdle是最大的空闲连接数，这里取值为5，表示即使没有数据库连接时依然可以保持5空闲的连接，而不被清除，随时处于待命状态。
+		 -->
+	</bean>
+	
+	<!-- 配置sqlSessionFactory会话工厂 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 加载mybatis的全局配置文件 ,这里的classpath:这个标识可以省略不写，因为默认就是classpath下面的-->
+		<property name="configLocation" value="classpath:mybatis/sqlMapConfig.xml"/>
+		<!-- 加载数据源dataSource -->
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 原始dao接口 -->
+	<!-- <bean id="userDao" class="cn.itcast.ssm.dao.UserDaoImpl">
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean> -->
+	
+	<!-- mapper代理的配置 
+		MapperFactoryBean:根据Mapper接口生成代理对象
+	-->
+	<!-- <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		mapperInterface属性指定Mapper接口（全限定名）
+		<property name="mapperInterface" value="cn.itcast.ssm.mapper.UserMapper" />
+		因为MapperFactoryBean继承了SqlSessionDaoSupport，因此也需要配置sqlSessionFactory，否则我们去哪里获取sqlSession
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean> -->
+	
+	<!-- mapper批量扫描，通过Mapper扫描器MapperScannerConfigurer从mapper包中扫描出mapper接口，自动创建mapper代理对象并且将其在Spring容器中进行注册 -->   
+	<!-- 遵循规范：需要将mapper.java接口类名和mapper.xml映射文件名称保持一致，而且这两个文件要在同一个目录下。 -->
+	<!-- 自动扫描出来的mapper的id是mapper接口类的类名（首字母小写） ，id是代理对象的id，也就是接口的实现类的id -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 指定要扫描的包名，如果要扫描多个包的话，那么多个包之间使用半角逗号,进行分隔 -->
+		<property name="basePackage" value="cn.itcast.ssm.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+		<!-- 这里不使用引用指向sqlSessionFactory的原因是，一旦使用引用的方式，那么就会率先执行本扫描，最开始的加载数据库配置文件组件就会不起作用，无法创建数据源 -->
+	</bean>
+	
+	
+</beans>	
+	
+	
+	
+	
+	

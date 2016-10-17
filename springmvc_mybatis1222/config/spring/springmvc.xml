@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<beans xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+	
+	<!-- 对于注解的Handler也要交由Spring容器来管理
+		  对于注解的Handler可以单个配置 ，不需要id
+		  但是我们有N个Handler，如果都单个配置，那么会很不方便
+		  因此在实际开发当中，我们建议使用组件扫描技术，     -->
+	<!-- <bean class="cn.itcast.ssm.controller.ItemsController3" /> -->
+	<!-- 可以扫描 控制器Controller，Service，Repository... 
+		  @Service 用于标注业务层组件（服务层）；
+		  @Repository 用于标注数据访问层组件（持久化层）；
+		  @Controller 用于标注控制层组件（表现层）(如：Struts中的action，mybatis中的Handler我们一般称之为controller)
+		  @Component 表示泛型组件，当组件不好归类的时候，我们可以使用这个组件进行注解。
+		  这里我们需要扫描controller的包，因此需指定controller的包。
+		 context:component-scan这个标签是和注解配合使用的，也就是说要想被扫描到类上必须有组件注解。
+		  如果需要扫描多个包，我们就配置多个context:component-scan标签。
+		-->
+	<!-- 重点：被扫描出来的组件的id默认是组件名首字母小写，当然我们可以在添加注解的时候起别名，比如ItemsController组件可以被注解为@Controller("items")， 
+			    如果注解仅仅是@Controller的话，默认id就是itemsController，如果是@Controller("items")的话，那么id就是items。
+	-->
+	<context:component-scan base-package="cn.itcast.ssm.controller"></context:component-scan>
+	
+	<!-- 静态资源解析，比如js，css，image... (除了jsp页面)-->
+	<mvc:resources location="/js/" mapping="/js/**"/>
+	<mvc:resources location="/css/" mapping="/css/**"/>
+	<mvc:resources location="/image/" mapping="/image/**"/>
+	<mvc:resources location="/html/" mapping="/html/**"/>
+	
+	
+	<!-- 注解的处理器映射器 -->
+	<!-- <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" /> -->
+	<!-- 注解的处理器适配器 -->
+	<!-- <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter" /> -->
+	
+	<!-- 使用mvc:annotation-driven代替上面的注解映射器和注解适配器
+		 mvc:annotation-driven默认加载很多的参数绑定方法，比如json转换解析器就默认加载了，
+		  如果使用mvc:annotation-driven，就不需要配置上面的RequestMappingHandlerMapping和RequestMappingHandlerAdapter。
+		 在实际的开发过程当中，我们使用mvc:annotation-driven。
+	 -->
+	<!-- 其中conversion-service里面的就是一个bean，表示参数绑定转换器 ，我们需要向处理器适配器中注入我们自定义的参数绑定组件。-->
+	<!-- 其中的 validator属性表示将我们的校验器注入到处理器适配器当中去-->
+	<mvc:annotation-driven conversion-service="conversionService" validator="validator">
+	</mvc:annotation-driven>
+	
+	<!-- 先进行类型转换，转换成功之后，再进行参数绑定 -->
+	<!-- 自定义参数绑定组件 ，class里面的类是Spring提供的converter的一个对外的接口，其实是接口的一个实现类-->
+	<!-- 说明，springmvc默认提供了很多种类型转换，如果我们不自定义，还是用它默认提供的，自定义的则会覆盖默认提供的类型转换    -->
+	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<!-- 转换器 -->
+		<property name="converters">
+			<list>
+				<!-- 注入我们自定义的转换器 -->
+				<!-- 日期类型的转换1 (格式是yyyy-MM-dd HH:mm:ss)-->
+				<bean class="cn.itcast.ssm.controller.converter.CustomDateTimeConverter" />
+				<!-- 日期类型的转换2 (格式是yyyy-MM-dd)-->
+				<!-- <bean class="cn.itcast.ssm.controller.converter.CustomDateConverter" /> -->
+				<!-- 字符串去前后空格 -->
+				<!-- <bean class="" /> -->
+				
+			</list>
+		
+		</property>
+		
+	</bean>
+	
+	
+	<!-- 配置视图解析器 
+		  解析jsp的视图解析器，解析jsp视图，默认使用jstl标签，因此classpath下面要有jstl的jar包
+	-->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<!-- viewClass可以不用指定，因为默认就是加载使用jstl标签库 -->
+		<!-- <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property> -->
+		<!-- 配置jsp绝对路径的前缀 -->
+		<property name="prefix" value="/WEB-INF/jsp/"></property>
+		<!-- 配置jsp绝对路径的后缀 -->
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<!-- 配置validator校验器 -->
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<!-- 我们这里指定的是Hibernate的校验器 -->
+		<property name="providerClass" value="org.hibernate.validator.HibernateValidator"></property>
+		<!-- 指定校验使用的资源文件，在文件中配置校验错误信息，如果不指定则默认使用classpath下的ValidationMessages.properties -->
+		<property name="validationMessageSource" ref="messageSource"></property>
+	</bean>
+	<!-- 校验错误信息配置文件 -->
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<!-- 资源文件名 ，因为name是basenames，所以默认文件的后缀名就是.properties-->
+		<property name="basenames">
+			<list>
+				<value>classpath:CustomValidationMessages</value>
+			</list>
+		</property>
+		<!-- 貌似对properties文件编码格式起决定性作用的属性是 defaultEncoding！！！-->
+		<property name="defaultEncoding" value="utf-8"></property>
+		<!-- 资源文件编码格式，这个属性值的设置貌似不起啥作用 -->
+		<!-- <property name="fileEncodings" value="utf-8"></property> -->
+		<!-- 对资源文件内容缓存时间 ，单位秒-->
+		<property name="cacheSeconds" value="120"></property>
+	</bean>
+	
+	<!-- 配置全局异常处理器（有且只有一个） 
+		  只要实现HandlerExceptionResolver接口就是全局异常处理器，
+		  也就是说如果我们配置了自定义的全局异常处理器的话，就会使springmvc默认使用的全局异常处理器失效（被覆盖）。
+	-->
+	<bean class="cn.itcast.ssm.exception.CustomExceptionResolver" />
+	
+	
+	<!-- 配置文件上传的解析器（属于multipart多部件类型的解析器） -->
+	<!-- 如果我们的表单Form类型是multipart的话一定要在springmvc.xml中配置multipart类型的解析器，否则参数绑定会失败。 -->
+	<!-- 配置多部件解析器的目的是 ，在文件类型进行参数绑定的时候，解析器会实例化CommonsMultipartFile对象进行参数绑定，不管你没有上传文件，都会实例化对象进行参数绑定-->
+	<bean id="multipartResolver" 
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 设置上传文件的最大尺寸为5MB（1024*1024*5） -->
+		<!-- <property name="maxUploadSize" value="5242880" /> -->
+		<property name="maxUploadSize">
+			<value>5242880</value>
+		</property>
+	</bean>
+	
+	<!-- 配置类似于全局的拦截器 -->
+	<mvc:interceptors>
+		<!-- 配置多个拦截器，按顺序依次执行 -->
+		<mvc:interceptor>
+			<!-- 身份认证的拦截器 -->
+			<mvc:mapping path="/**"/>
+			<bean class="cn.itcast.ssm.interceptor.LoginInterceptor"></bean>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<!-- /**表示拦截所有的url包括子url路径 （/*表示只拦截最根的URL路径）-->
+			<mvc:mapping path="/**"/>
+			<bean class="cn.itcast.ssm.interceptor.HandlerInterceptor1"></bean>
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="cn.itcast.ssm.interceptor.HandlerInterceptor2"></bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+</beans>
+	
+	
+	
+	
